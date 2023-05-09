@@ -10,6 +10,7 @@
 typedef struct {
   char *name;
   char *description;
+  char *sbu;
   char **downloads;
   size_t downloads_size;
 } Metainfo;
@@ -83,6 +84,8 @@ Metainfo* parse_metainfo(char *pkgid) {
         metainfo.name = strdup((const char*)value->data.scalar.value);
       } else if (strcmp(key, "description") == 0 && value->type == YAML_SCALAR_NODE) {
         metainfo.description = strdup((const char*)value->data.scalar.value);
+      } else if (strcmp(key, "sbu") == 0 && value->type == YAML_SCALAR_NODE) {
+        metainfo.sbu = strdup((const char*)value->data.scalar.value);
       } else if (strcmp(key, "downloads") == 0 && value->type == YAML_SEQUENCE_NODE) {
         metainfo.downloads_size = value->data.sequence.items.top - value->data.sequence.items.start;
         metainfo.downloads = malloc(sizeof(char *) * metainfo.downloads_size);

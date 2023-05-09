@@ -4,6 +4,7 @@
 typedef struct {
   char *name;
   char *description;
+  char *sbu;
   char **downloads;
   size_t downloads_size;
 } Metainfo;

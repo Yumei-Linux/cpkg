@@ -32,3 +32,10 @@ void setup_cache() {
 
   free(cache_directory);
 }
+
+int confirm(const char *message) {
+  printf("%s (y/n) ", message);
+  char answer = getchar();
+  while (getchar() != '\n'); // Clear input buffer
+  return (answer == 'y' || answer == 'Y');
+}
