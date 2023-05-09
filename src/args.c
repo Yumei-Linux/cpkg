@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define COMMANDS_LEN 2
+#define COMMANDS_LEN 3
 
 typedef struct {
   char *command;
@@ -14,7 +14,7 @@ Arguments *parse_arguments(int argc, char *argv[]) {
   args->command = NULL;
 
   char *valid_commands[COMMANDS_LEN] = {
-    "help", "setup"
+    "help", "setup", "build"
   };
 
   for (int i = 0; i < argc; i++) {
