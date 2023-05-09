@@ -10,12 +10,18 @@ void error(char *message) {
   exit(1);
 }
 
-void setup_cache() {
-  const char* cache_dir = "/var/cache/cpkg";
-  char* cache_directory = strdup(cache_dir);
+char *cache_dir() {
+  const char *cache_dir = "/var/cache/cpkg";
+  char *cache_directory = strdup(cache_dir);
   if (cache_directory == NULL) {
-    error("Cannot get the cache directory");
+    error("Cannot get the cache directory!");
   }
+
+  return cache_directory;
+}
+
+void setup_cache() {
+  char *cache_directory = cache_dir();
 
   struct stat st = {0};
   if (stat(cache_directory, &st) == -1) {

@@ -36,5 +36,4 @@ clean:
 
 # Utilities
 run: all
-	@clear
 	@./$(EXECUTABLE)
