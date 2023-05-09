@@ -30,3 +30,8 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 # Clean files
 clean:
 	rm -f $(EXECUTABLE) $(OBJS)
+
+# Utilities
+run: all
+	@clear
+	@./$(EXECUTABLE)

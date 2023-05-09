@@ -1,6 +1,7 @@
-#include "../include/myfunction.h"
+#include <stdio.h>
+#include "../include/root.h"
 
 int main() {
-  myfunction();
-  return 0;
+  check_root();
+  printf("Everything ok!\n");
 }
