@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include "../include/root.h"
+#include "../include/utils.h"
 
 int main() {
   check_root();
-  printf("Everything ok!\n");
+  setup_cache();
 }

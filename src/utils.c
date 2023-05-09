@@ -1,7 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 void error(char *message) {
   printf("[FATAL] %s\n", message);
   exit(1);
+}
+
+void setup_cache() {
+  const char* cache_dir = "/var/cache/cpkg";
+  char* cache_directory = strdup(cache_dir);
+  if (cache_directory == NULL) {
+    error("Cannot get the cache directory");
+  }
+
+  struct stat st = {0};
+  if (stat(cache_directory, &st) == -1) {
+    if (mkdir(cache_directory, S_IRWXU) == -1) {
+      error("Couldn't create cache directory.");
+    }
+  }
+
+  free(cache_directory);
 }

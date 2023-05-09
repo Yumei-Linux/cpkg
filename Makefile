@@ -21,6 +21,9 @@ EXECUTABLE = cpkg
 # Rules
 all: $(EXECUTABLE)
 
+$(OBJDIR):
+	mkdir -pv $(OBJDIR)
+
 $(EXECUTABLE): $(OBJS)
 	$(CC) $(LDFLAGS) $^ -o $@
 
