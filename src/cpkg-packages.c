@@ -14,7 +14,7 @@ void clone_cpkg_packages() {
   }
 
   size_t path_size = strlen(cache_directory) + strlen("/cpkg-packages");
-  char *path = malloc(path_size);
+  char *path = malloc(path_size + 1);
 
   sprintf(path, "%s/cpkg-packages", cache_directory);
 
