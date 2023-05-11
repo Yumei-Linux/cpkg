@@ -89,10 +89,13 @@ void build_pkg(char *id) {
   printf("Name: %s\n", metainfo->name);
   printf("Description: %s\n", metainfo->description);
   printf("Estimated build time: %s\n", metainfo->sbu);
-  printf("Downloads:\n");
 
-  for (size_t i = 0; i < metainfo->downloads_size; i++) {
-    printf("  -> Download #%ld: %s\n", i + 1, metainfo->downloads[i]);
+  if (metainfo->downloads_size > 0) {
+    printf("Downloads:\n");
+
+    for (size_t i = 0; i < metainfo->downloads_size; i++) {
+      printf("  -> Download #%ld: %s\n", i + 1, metainfo->downloads[i]);
+    }
   }
 
   free(path);

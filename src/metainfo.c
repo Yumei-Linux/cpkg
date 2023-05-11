@@ -107,10 +107,9 @@ Metainfo* parse_metainfo(char *pkgid) {
   yaml_parser_delete(&parser);
 
   if (metainfo.name == NULL ||
-      metainfo.description == NULL ||
-      metainfo.downloads == NULL) {
+      metainfo.description == NULL) {
     free(pkgid);
-    fprintf(stderr, "Invalid metainfo.yaml!");
+    fprintf(stderr, "Invalid metainfo.yaml!\n");
     exit(1);
   }
 
