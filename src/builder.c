@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
 #include "../include/metainfo.h"
 #include "../include/utils.h"
 #include "../include/colors.h"
+#include "../include/query.h"
 
 char* try_to_get_id(int argc, char *argv[]) {
   if (argc < 3)
@@ -83,27 +85,33 @@ int build_pkg(char *id, int with_confirm) {
 
   Metainfo *metainfo = parse_metainfo(id);
 
-  printf("%s[S] Displaying info for pkg %s:%s\n\n", GREEN, id, RESET);
-
-  printf(" %sName:%s                 %s%s\n", MAGENTA, RESET, metainfo->name, RESET);
-  printf(" %sDescription:%s          %s%s\n", MAGENTA, RESET, format(metainfo->description, 60), RESET);
-  printf(" %sEstimated build time:%s %s%s\n\n", MAGENTA, RESET, metainfo->sbu, RESET);
-
-  if (metainfo->deps_size > 0) {
-    printf(" %sDependencies:%s\n", CYAN, RESET);
-
-    for (size_t i = 0; i < metainfo->deps_size; i++)
-      printf("   %s-> %s%s\n", MAGENTA, RESET, metainfo->deps[i]);
-  }
-
-  if (metainfo->downloads_size > 0) {
-    printf(" %sDownloads:%s\n", CYAN, RESET);
-
-    for (size_t i = 0; i < metainfo->downloads_size; i++)
-      printf("   %s-> %s%s\n", MAGENTA, RESET, metainfo->downloads[i]);
-  }
+  print_pkginfo(id, metainfo);
 
   free(path);
+
+  // check if it's already installed
+  if (metainfo->provides_size > 0) {
+    for (size_t i = 0; i < metainfo->provides_size; i++) {
+      char *filename = metainfo->provides[i];
+
+      // TODO: Check for -f to rebuild anyways
+      if (access(filename, F_OK) == 0) {
+        if (with_confirm == 1) {
+          printf("\n%s[W] This package is already installed, if you want to rebuild, write 'y'.%s\n", YELLOW, RESET);
+        } else {
+          free(cache_directory);
+          free(metainfo);
+          printf(
+            "\n%s[W] Skipping building for %s because it's already installed, use -f to force the rebuild of these packages.%s\n", YELLOW, id, RESET
+          );
+
+          return 0;
+        }
+
+        break;
+      }
+    }
+  }
 
   if (with_confirm == 1) {
     if (!confirm("Do you wish to install it?")) {
@@ -117,22 +125,8 @@ int build_pkg(char *id, int with_confirm) {
     for (size_t i = 0; i < metainfo->deps_size; i++) {
       if (build_pkg(metainfo->deps[i], 0) == 1) {
         printf("%s[F] Subdep for package %s failed...%s\n", RED, id, RESET);
-
         free(cache_directory);
-        free(metainfo->name);
-        free(metainfo->description);
-        free(metainfo->sbu);
-
-        for (size_t i = 0; i < metainfo->deps_size; i++)
-          free(metainfo->deps[i]);
-
-        free(metainfo->deps);
-
-        for (size_t i = 0; i < metainfo->downloads_size; i++)
-          free(metainfo->downloads[i]);
-
-        free(metainfo->downloads);
-
+        free_metainfo(metainfo);
         return 1;
       }
     }
@@ -169,23 +163,10 @@ int build_pkg(char *id, int with_confirm) {
   }
 
   free(cache_directory);
-  free(metainfo->name);
-  free(metainfo->description);
-  free(metainfo->sbu);
+  free_metainfo(metainfo);
 
-  for (size_t i = 0; i < metainfo->deps_size; i++)
-    free(metainfo->deps[i]);
-
-  free(metainfo->deps);
-
-  for (size_t i = 0; i < metainfo->downloads_size; i++)
-    free(metainfo->downloads[i]);
-
-  free(metainfo->downloads);
-
-  if (statuscode == 0) {
+  if (statuscode == 0)
     printf("%s[S] Package building for %s ended successfully!%s\n", GREEN, id, RESET);
-  }
 
   return statuscode;
 }

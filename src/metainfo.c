@@ -11,11 +11,34 @@ typedef struct {
   char *name;
   char *description;
   char *sbu;
+  char **provides;
+  size_t provides_size;
   char **deps;
   size_t deps_size;
   char **downloads;
   size_t downloads_size;
 } Metainfo;
+
+void free_metainfo(Metainfo *metainfo) {
+  free(metainfo->name);
+  free(metainfo->description);
+  free(metainfo->sbu);
+
+  for (size_t i = 0; i < metainfo->provides_size; i++)
+    free(metainfo->provides[i]);
+
+  free(metainfo->provides);
+
+  for (size_t i = 0; i < metainfo->deps_size; i++)
+    free(metainfo->deps[i]);
+
+  free(metainfo->deps);
+
+  for (size_t i = 0; i < metainfo->downloads_size; i++)
+    free(metainfo->downloads[i]);
+
+  free(metainfo->downloads);
+}
 
 Metainfo* parse_metainfo(char *pkgid) {
   char *cache_directory = cache_dir();
@@ -89,6 +112,16 @@ Metainfo* parse_metainfo(char *pkgid) {
         metainfo.description = strdup((const char*)value->data.scalar.value);
       } else if (strcmp(key, "sbu") == 0 && value->type == YAML_SCALAR_NODE) {
         metainfo.sbu = strdup((const char*)value->data.scalar.value);
+      } else if (strcmp(key, "provides") == 0 && value->type == YAML_SEQUENCE_NODE) {
+        metainfo.provides_size = value->data.sequence.items.top - value->data.sequence.items.start;
+        metainfo.provides = malloc(sizeof(char *) * metainfo.provides_size);
+        if (metainfo.provides) {
+          for (size_t i = 0; i < metainfo.provides_size; i++) {
+            yaml_node_t *item = yaml_document_get_node(&document, value->data.sequence.items.start[i]);
+            if (item->type == YAML_SCALAR_NODE)
+              metainfo.provides[i] = strdup((const char *) item->data.scalar.value);
+          }
+        }
       } else if (strcmp(key, "deps") == 0 && value->type == YAML_SEQUENCE_NODE) {
         metainfo.deps_size = value->data.sequence.items.top - value->data.sequence.items.start;
         metainfo.deps = malloc(sizeof(char *) * metainfo.deps_size);
