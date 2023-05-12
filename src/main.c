@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 
   if (strcmp(args->command, "build") == 0) {
     char *id = try_to_get_id(argc, argv);
-    build_pkg(id);
+    build_pkg(id, 1);
     free(id);
   }
 

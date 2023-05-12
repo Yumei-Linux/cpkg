@@ -6,6 +6,7 @@
 
 #include "../include/metainfo.h"
 #include "../include/utils.h"
+#include "../include/colors.h"
 
 char* try_to_get_id(int argc, char *argv[]) {
   if (argc < 3)
@@ -52,8 +53,8 @@ void download_source(char *id, char *download_url) {
   }
 }
 
-void build_pkg(char *id) {
-  printf("Attempting to build %s.\n", id);
+int build_pkg(char *id, int with_confirm) {
+  printf("%s[I] Attempting to build %s%s.\n", BLUE, id, RESET);
 
   char *cache_directory = cache_dir();
   if (!cache_directory)
@@ -78,43 +79,70 @@ void build_pkg(char *id) {
     );
   }
 
-  printf("Building package %s...\n", path);
+  printf("%s[W] Building package %s...%s\n", YELLOW, path, RESET);
 
   Metainfo *metainfo = parse_metainfo(id);
 
-  printf("----------------------------------\n");
-  printf("Displaying info for pkg %s:\n", id);
-  printf("----------------------------------\n");
+  printf("%s[S] Displaying info for pkg %s:%s\n\n", GREEN, id, RESET);
 
-  printf("Name: %s\n", metainfo->name);
-  printf("Description: %s\n", metainfo->description);
-  printf("Estimated build time: %s\n", metainfo->sbu);
+  printf(" %sName:%s                 %s%s\n", MAGENTA, RESET, metainfo->name, RESET);
+  printf(" %sDescription:%s          %s%s\n", MAGENTA, RESET, metainfo->description, RESET);
+  printf(" %sEstimated build time:%s %s%s\n\n", MAGENTA, RESET, metainfo->sbu, RESET);
+
+  if (metainfo->deps_size > 0) {
+    printf(" %sDependencies:%s\n", CYAN, RESET);
+
+    for (size_t i = 0; i < metainfo->deps_size; i++)
+      printf("   %s-> %s%s\n", MAGENTA, RESET, metainfo->deps[i]);
+  }
 
   if (metainfo->downloads_size > 0) {
-    printf("Downloads:\n");
+    printf(" %sDownloads:%s\n", CYAN, RESET);
 
-    for (size_t i = 0; i < metainfo->downloads_size; i++) {
-      printf("  -> Download #%ld: %s\n", i + 1, metainfo->downloads[i]);
-    }
+    for (size_t i = 0; i < metainfo->downloads_size; i++)
+      printf("   %s-> %s%s\n", MAGENTA, RESET, metainfo->downloads[i]);
   }
 
   free(path);
 
-  printf("--------------------------------\n");
-  if (!confirm("Do you wish to install it?")) {
-    free(id);
-    exit(0);
+  if (with_confirm == 1) {
+    if (!confirm("Do you wish to install it?")) {
+      free(id);
+      exit(0);
+    }
   }
 
-  printf("--------------------------------\n");
-  printf("Downloading sources...\n");
+  // recursive deps building process.
+  if (metainfo->deps_size > 0) {
+    for (size_t i = 0; i < metainfo->deps_size; i++) {
+      if (build_pkg(metainfo->deps[i], 0) == 1) {
+        printf("%s[F] Subdep for package %s failed...%s", RED, id, RESET);
 
-  for (size_t i = 0; i < metainfo->downloads_size; i++) {
+        free(cache_directory);
+        free(metainfo->name);
+        free(metainfo->description);
+        free(metainfo->sbu);
+
+        for (size_t i = 0; i < metainfo->deps_size; i++)
+          free(metainfo->deps[i]);
+
+        free(metainfo->deps);
+
+        for (size_t i = 0; i < metainfo->downloads_size; i++)
+          free(metainfo->downloads[i]);
+
+        free(metainfo->downloads);
+        exit(1);
+      }
+    }
+  }
+
+  printf("%s[I] Downloading sources...%s\n", BLUE, RESET);
+
+  for (size_t i = 0; i < metainfo->downloads_size; i++)
     download_source(id, metainfo->downloads[i]);
-  }
 
-  printf("--------------------------------\n");
-  printf("Executing build script...\n");
+  printf("%s[I] Executing build script...%s\n", BLUE, RESET);
   
   size_t build_path_size = strlen("cd ")
     + strlen(cache_directory)
@@ -132,19 +160,31 @@ void build_pkg(char *id) {
     cache_directory, id
   );
 
-  if (system(build_path) != 0) {
-    printf("[FATAL] **Build of the package failed.**");
-  }
+  int statuscode = 0; // ok
 
-  printf("--------------------------------\n");
+  if (system(build_path) != 0) {
+    printf("%s[F] Build of the package failed.%s", RED, RESET);
+    statuscode = 1; // fatal
+  }
 
   free(cache_directory);
   free(metainfo->name);
   free(metainfo->description);
   free(metainfo->sbu);
 
+  for (size_t i = 0; i < metainfo->deps_size; i++)
+    free(metainfo->deps[i]);
+
+  free(metainfo->deps);
+
   for (size_t i = 0; i < metainfo->downloads_size; i++)
     free(metainfo->downloads[i]);
 
   free(metainfo->downloads);
+
+  if (statuscode == 0) {
+    printf("%s[S] Package building for %s ended successfully!%s\n", GREEN, id, RESET);
+  }
+
+  return statuscode;
 }

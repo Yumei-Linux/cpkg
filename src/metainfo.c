@@ -11,6 +11,8 @@ typedef struct {
   char *name;
   char *description;
   char *sbu;
+  char **deps;
+  size_t deps_size;
   char **downloads;
   size_t downloads_size;
 } Metainfo;
@@ -80,12 +82,23 @@ Metainfo* parse_metainfo(char *pkgid) {
     for (yaml_node_pair_t *pair = root->data.mapping.pairs.start; pair < root->data.mapping.pairs.top; pair++) {
       char *key = (char *)yaml_document_get_node(&document, pair->key)->data.scalar.value;
       yaml_node_t *value = yaml_document_get_node(&document, pair->value);
+
       if (strcmp(key, "name") == 0 && value->type == YAML_SCALAR_NODE) {
         metainfo.name = strdup((const char*)value->data.scalar.value);
       } else if (strcmp(key, "description") == 0 && value->type == YAML_SCALAR_NODE) {
         metainfo.description = strdup((const char*)value->data.scalar.value);
       } else if (strcmp(key, "sbu") == 0 && value->type == YAML_SCALAR_NODE) {
         metainfo.sbu = strdup((const char*)value->data.scalar.value);
+      } else if (strcmp(key, "deps") == 0 && value->type == YAML_SEQUENCE_NODE) {
+        metainfo.deps_size = value->data.sequence.items.top - value->data.sequence.items.start;
+        metainfo.deps = malloc(sizeof(char *) * metainfo.deps_size);
+        if (metainfo.deps) {
+          for (size_t i = 0; i < metainfo.deps_size; i++) {
+            yaml_node_t *item = yaml_document_get_node(&document, value->data.sequence.items.start[i]);
+            if (item->type == YAML_SCALAR_NODE)
+              metainfo.deps[i] = strdup((const char *) item->data.scalar.value);
+          }
+        }
       } else if (strcmp(key, "downloads") == 0 && value->type == YAML_SEQUENCE_NODE) {
         metainfo.downloads_size = value->data.sequence.items.top - value->data.sequence.items.start;
         metainfo.downloads = malloc(sizeof(char *) * metainfo.downloads_size);

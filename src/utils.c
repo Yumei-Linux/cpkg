@@ -5,8 +5,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "../include/colors.h"
+
 void error(char *message) {
-  printf("[FATAL] %s\n", message);
+  printf("%s[F] %s%s\n", RED, message, RESET);
   exit(1);
 }
 
@@ -34,7 +36,7 @@ void setup_cache() {
 }
 
 int confirm(const char *message) {
-  printf("%s (y/n) ", message);
+  printf("%s%s %s(y/n)%s ", WHITE, message, YELLOW, RESET);
   char answer = getchar();
   while (getchar() != '\n'); // Clear input buffer
   return (answer == 'y' || answer == 'Y');
