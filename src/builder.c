@@ -116,7 +116,7 @@ int build_pkg(char *id, int with_confirm) {
   if (metainfo->deps_size > 0) {
     for (size_t i = 0; i < metainfo->deps_size; i++) {
       if (build_pkg(metainfo->deps[i], 0) == 1) {
-        printf("%s[F] Subdep for package %s failed...%s", RED, id, RESET);
+        printf("%s[F] Subdep for package %s failed...%s\n", RED, id, RESET);
 
         free(cache_directory);
         free(metainfo->name);
@@ -132,7 +132,8 @@ int build_pkg(char *id, int with_confirm) {
           free(metainfo->downloads[i]);
 
         free(metainfo->downloads);
-        exit(1);
+
+        return 1;
       }
     }
   }
@@ -163,7 +164,7 @@ int build_pkg(char *id, int with_confirm) {
   int statuscode = 0; // ok
 
   if (system(build_path) != 0) {
-    printf("%s[F] Build of the package failed.%s", RED, RESET);
+    printf("%s[F] Build of the package failed.%s\n", RED, RESET);
     statuscode = 1; // fatal
   }
 
