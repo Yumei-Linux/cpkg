@@ -86,7 +86,7 @@ int build_pkg(char *id, int with_confirm) {
   printf("%s[S] Displaying info for pkg %s:%s\n\n", GREEN, id, RESET);
 
   printf(" %sName:%s                 %s%s\n", MAGENTA, RESET, metainfo->name, RESET);
-  printf(" %sDescription:%s          %s%s\n", MAGENTA, RESET, metainfo->description, RESET);
+  printf(" %sDescription:%s          %s%s\n", MAGENTA, RESET, format(metainfo->description, 60), RESET);
   printf(" %sEstimated build time:%s %s%s\n\n", MAGENTA, RESET, metainfo->sbu, RESET);
 
   if (metainfo->deps_size > 0) {
