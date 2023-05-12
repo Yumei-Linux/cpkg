@@ -124,7 +124,7 @@ int build_pkg(char *id, int with_confirm) {
   if (metainfo->deps_size > 0) {
     for (size_t i = 0; i < metainfo->deps_size; i++) {
       if (build_pkg(metainfo->deps[i], 0) == 1) {
-        printf("%s[F] Subdep for package %s failed...%s\n", RED, id, RESET);
+        printf("%s[F] Subdep (%s) for package %s failed...%s\n", RED, metainfo->deps[i], id, RESET);
         free(cache_directory);
         free_metainfo(metainfo);
         return 1;
