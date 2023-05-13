@@ -102,7 +102,7 @@ int build_pkg(char *id, int with_confirm) {
           free(cache_directory);
           free(metainfo);
           printf(
-            "\n%s[W] Skipping building for %s because it's already installed, use -f to force the rebuild of these packages.%s\n", YELLOW, id, RESET
+            "\n%s[W] Skipping building for %s because it's already installed. (to force build these files, you would have to use -f in the future (this flag still doesn't exists).%s\n", YELLOW, id, RESET
           );
 
           return 0;
